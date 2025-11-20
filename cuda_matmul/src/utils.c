@@ -2,6 +2,7 @@
 
 #include <openssl/md5.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 char *getMD5DigestStr(Matrix m, size_t size) {
   MD5_CTX ctx;
