@@ -9,27 +9,6 @@
 #include "cuda_utils.h"
 #include "utils.h"
 
-#define TILE_DIM 32
-
-__global__ void matrix_transpose(const Matrix in, Matrix out, size_t n_rows) {
-  __shared__ float tile[TILE_DIM][TILE_DIM];
-
-  int x = blockIdx.x * TILE_DIM + threadIdx.x;
-  int y = blockIdx.y * TILE_DIM + threadIdx.y;
-  int width = gridDim.x * TILE_DIM;
-
-  for (size_t i = 0; i < TILE_DIM; i += n_rows)
-    tile[threadIdx.y + i][threadIdx.x] = in[(y + i) * width + x];
-
-  __syncthreads();
-
-  x = blockIdx.y * TILE_DIM + threadIdx.x;
-  y = blockIdx.x * TILE_DIM + threadIdx.y;
-
-  for (size_t i = 0; i < TILE_DIM; i += n_rows)
-    out[(y + i) * width + x] = tile[threadIdx.x][threadIdx.y + i];
-}
-
 __global__ void matrix_mult_kernel(const Matrix A, const Matrix B, Matrix C,
                                    size_t n_rows) {
   float sum = 0;
@@ -46,6 +25,15 @@ __global__ void matrix_mult_kernel(const Matrix A, const Matrix B, Matrix C,
   return;
 }
 
+void matrix_transpose(const Matrix in, Matrix out, size_t N) {
+#pragma omp parallel for
+  for (size_t i = 0; i < N; i++) {
+    for (size_t j = 0; j < N; j++) {
+      out[j * N + i] = in[i * N + j];
+    }
+  }
+}
+
 double matrix_mult_gpu(const Matrix A, const Matrix B, const Matrix C,
                        size_t N) {
   timer start, end;
@@ -55,22 +43,18 @@ double matrix_mult_gpu(const Matrix A, const Matrix B, const Matrix C,
 
   TIME_GET(start);
 
+  // To save memory, we will store the result of the transposition in C
+  matrix_transpose(B, C, N);
+
   CUDA_ERR_CHECK(cudaMalloc(&Ad, mem_size));
   CUDA_ERR_CHECK(cudaMalloc(&Bd, mem_size));
   CUDA_ERR_CHECK(cudaMalloc(&Cd, mem_size));
 
   CUDA_ERR_CHECK(cudaMemcpy(Ad, A, mem_size, cudaMemcpyHostToDevice));
-  // NOTE: As the transposed matrix shall be stored in B, we need to copy B to
-  // Cd as a temporary storage
-  CUDA_ERR_CHECK(cudaMemcpy(Cd, B, mem_size, cudaMemcpyHostToDevice));
+  // NOTE: As the transposed matrix is stored in C, we need to copy from C here
+  CUDA_ERR_CHECK(cudaMemcpy(Bd, C, mem_size, cudaMemcpyHostToDevice));
 
-  dim3 dBlock_transpose(32, 8);
   dim3 dGrid(N / 32, N / 32);
-
-  // NOTE: Transpose B from Cd to Bd
-  matrix_transpose<<<dGrid, dBlock_transpose>>>(Cd, Bd, 8);
-  CUDA_ERR_CHECK(cudaGetLastError());
-
   dim3 dBlock(32, 32);
   matrix_mult_kernel<<<dGrid, dBlock>>>(Ad, Bd, Cd, N);
   CUDA_ERR_CHECK(cudaGetLastError());
@@ -122,7 +106,7 @@ int main(int argc, char **argv) {
   fprintf(stderr, "Time: %lf\n", result);
   fprintf(stdout, "Result GPU: %s \n", getMD5DigestStr(C, n_rows));
 
-  FILE *foutput = fopen("tranpose_gpu_result.bin", "w");
+  FILE *foutput = fopen("transpose_host_result.bin", "w");
 
   if (foutput == NULL) {
     return EXIT_FAILURE;

@@ -96,11 +96,13 @@ int main(int argc, char **argv) {
   fprintf(stderr, "Time: %lf\n", result);
   fprintf(stdout, "Result GPU: %s \n", getMD5DigestStr(C, n_rows));
 
-  FILE *foutput = fopen("wo_tiling.bin", "w");
+  FILE *foutput = fopen("naive_result.bin", "w");
 
   if (foutput == NULL) {
     return EXIT_FAILURE;
   }
 
   fwrite(C, sizeof(float), n_rows * n_rows, foutput);
+
+  fclose(foutput);
 }
