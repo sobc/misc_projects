@@ -60,7 +60,7 @@ double matrix_mult_gpu(const Matrix A, const Matrix B, const Matrix C,
   CUDA_ERR_CHECK(cudaMalloc(&Cd, mem_size));
 
   CUDA_ERR_CHECK(cudaMemcpy(Ad, A, mem_size, cudaMemcpyHostToDevice));
-  CUDA_ERR_CHECK(cudaMemcpy(Bd, B, mem_size, cudaMemcpyHostToDevice));
+  CUDA_ERR_CHECK(cudaMemcpy(Cd, B, mem_size, cudaMemcpyHostToDevice));
 
   dim3 dBlock_transpose(32, 8);
   dim3 dGrid(N / 32, N / 32);
