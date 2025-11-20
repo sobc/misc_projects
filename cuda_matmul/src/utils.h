@@ -15,6 +15,8 @@ typedef struct timespec timer;
    (timer1.tv_sec * 1.0E+9 + timer1.tv_nsec)) /                                \
       1.0E+9
 
+#define RAND_SEED 12345
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
   CUDA_ERR_CHECK(cudaMallocHost((void **)&B, mem_size));
   CUDA_ERR_CHECK(cudaMallocHost((void **)&C, mem_size));
 
-  srand(0);
+  srand(RAND_SEED);
 
   for (size_t i = 0; i < n_rows * n_rows; i++) {
     A[i] = 100. / (rand() % 10000);
