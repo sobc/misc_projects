@@ -25,28 +25,22 @@ __global__ void matrix_mult_kernel(const Matrix A, const Matrix B,
   return;
 }
 
-double matrix_mult_gpu(const Matrix A, const Matrix B, const Matrix C, size_t N,
-                       double *trans) {
+double matrix_mult_gpu(const Matrix A, const Matrix B, const Matrix C,
+                       size_t N) {
   timer start;
   timer end;
 
-  timer t_s, t_e;
-  *trans = 0;
-
   size_t size = N * N * sizeof(float);
   Matrix Ad, Bd, Cd;
+
+  TIME_GET(start);
 
   CUDA_ERR_CHECK(cudaMalloc(&Ad, size));
   CUDA_ERR_CHECK(cudaMalloc(&Bd, size));
   CUDA_ERR_CHECK(cudaMalloc(&Cd, size));
 
-  TIME_GET(start);
-  TIME_GET(t_s);
   CUDA_ERR_CHECK(cudaMemcpy(Ad, A, size, cudaMemcpyHostToDevice));
   CUDA_ERR_CHECK(cudaMemcpy(Bd, B, size, cudaMemcpyHostToDevice));
-  TIME_GET(t_e);
-
-  *trans += TIME_DIFF(t_s, t_e);
 
   dim3 dBlock(32, 32);
   dim3 dGrid(N / 32, N / 32);
@@ -55,15 +49,13 @@ double matrix_mult_gpu(const Matrix A, const Matrix B, const Matrix C, size_t N,
 
   CUDA_ERR_CHECK(cudaDeviceSynchronize());
 
-  TIME_GET(t_s);
   CUDA_ERR_CHECK(cudaMemcpy(C, Cd, size, cudaMemcpyDeviceToHost));
-  TIME_GET(t_e);
 
-  *trans += TIME_DIFF(t_s, t_e);
   TIME_GET(end);
   cudaFree(Ad);
   cudaFree(Bd);
   cudaFree(Cd);
+
   return TIME_DIFF(start, end);
 }
 
@@ -100,9 +92,8 @@ int main(int argc, char **argv) {
     B[i] = 100. / (rand() % 10000);
   }
 
-  double transport;
-  result = matrix_mult_gpu(A, B, C, n_rows, &transport);
-  fprintf(stderr, "Time: %lf, Transport: %lf\n", result, transport);
+  result = matrix_mult_gpu(A, B, C, n_rows);
+  fprintf(stderr, "Time: %lf\n", result);
   fprintf(stdout, "Result GPU: %s \n", getMD5DigestStr(C, n_rows));
 
   FILE *foutput = fopen("wo_tiling.bin", "w");
