@@ -41,10 +41,10 @@ double matrix_mult_gpu(const Matrix A, const Matrix B, const Matrix C,
   size_t mem_size = N * N * sizeof(float);
   Matrix Ad, Bd, Cd;
 
-  TIME_GET(start);
-
   // To save memory, we will store the result of the transposition in C
   matrix_transpose(B, C, N);
+
+  TIME_GET(start);
 
   CUDA_ERR_CHECK(cudaMalloc(&Ad, mem_size));
   CUDA_ERR_CHECK(cudaMalloc(&Bd, mem_size));
