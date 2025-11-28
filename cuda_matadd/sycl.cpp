@@ -1,6 +1,6 @@
 #include <sycl/sycl.hpp>
 
-#include "utils.h"
+#include "matadd.h"
 
 int main() {
   struct timespec start;

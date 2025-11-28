@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef MATADD_H
+#define MATADD_H
 
 #include <stddef.h>
 
@@ -23,4 +23,4 @@ void matrix_add_seq(const Matrix A, const Matrix B, const Matrix C);
 }
 #endif
 
-#endif // UTILS_H
+#endif // MATADD_H

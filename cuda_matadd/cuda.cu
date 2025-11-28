@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "utils.h"
+#include "matadd.h"
 
 #define CUDA_ERR_CHECK(x)                                                      \
   do {                                                                         \

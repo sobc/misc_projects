@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "utils.h"
+#include "matadd.h"
 #include <omp.h>
 
 void matrix_add_gpu(const Matrix A, const Matrix B, const Matrix C) {
