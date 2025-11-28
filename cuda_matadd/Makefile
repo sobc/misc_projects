@@ -5,7 +5,7 @@ CUDA_CC = nvcc
 CUDA_FLAGS = -arch=sm_86
 
 ACPP=acpp 
-ACPP_EXPLICIT=--acpp-targets="cuda:sm_86"
+ACPP_EXPLICIT=--acpp-targets="omp;cuda:sm_86"
 
 ICPX=icpx
 ICPX_FLAGS=-fsycl -fsycl-targets=nvptx64-nvidia-cuda,spir64_x86_64 
