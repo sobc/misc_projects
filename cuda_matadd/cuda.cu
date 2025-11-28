@@ -56,8 +56,6 @@ double matrix_add_gpu(const Matrix A, const Matrix B, const Matrix C) {
 }
 
 int main() {
-  struct timespec start;
-  struct timespec end;
   double result;
   Matrix A, B, C;
   A = (int *)malloc(NELEMENTS * NELEMENTS * sizeof(int));
