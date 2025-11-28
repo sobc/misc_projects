@@ -27,8 +27,9 @@ int main() {
   q.memcpy(d_A, A, NELEMENTS * NELEMENTS * sizeof(int));
   q.memcpy(d_B, B, NELEMENTS * NELEMENTS * sizeof(int)).wait();
 
-  q.parallel_for(sycl::range<1>(NELEMENTS * NELEMENTS),
-                 [=](sycl::id<1> idx) { d_C[idx] = d_A[idx] + d_B[idx]; });
+  q.parallel_for(sycl::range<1>(NELEMENTS * NELEMENTS), [=](sycl::id<1> idx) {
+     d_C[idx] = d_A[idx] + d_B[idx];
+   }).wait();
 
   q.memcpy(C, d_C, NELEMENTS * NELEMENTS * sizeof(int)).wait();
 
