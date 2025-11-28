@@ -9,10 +9,10 @@ Make sure you have access. If not, please contact [me](mailto:mluebke@uni-potsda
 
 There are four different implementations of matrix addition:
 
-- [sequential](./seq.c)
-- [cuda](./cuda.cu)
-- [OpenMP w/ target offloading](./omp.c)
-- [SYCL](./sycl.cpp)
+- [seq.c](./seq.c)
+- [cuda.cu](./cuda.cu)
+- [omp.c](./omp.c)
+- [sycl.cpp](./sycl.cpp)
 
 In order to successfully compile the sources, you will need these additional
 files:
