@@ -71,4 +71,8 @@ int main() {
 
   result = matrix_add_gpu(A, B, C);
   printf("Result GPU: %s Time: %lf\n", getMD5DigestStr(C), result);
+
+  free(A);
+  free(B);
+  free(C);
 }

@@ -24,7 +24,7 @@ int main() {
   Matrix d_B = sycl::malloc_device<int>(NELEMENTS * NELEMENTS, q);
   Matrix d_C = sycl::malloc_device<int>(NELEMENTS * NELEMENTS, q);
 
-  q.memcpy(d_A, A, NELEMENTS * NELEMENTS * sizeof(int)).wait();
+  q.memcpy(d_A, A, NELEMENTS * NELEMENTS * sizeof(int));
   q.memcpy(d_B, B, NELEMENTS * NELEMENTS * sizeof(int)).wait();
 
   q.parallel_for(sycl::range<1>(NELEMENTS * NELEMENTS),
@@ -39,4 +39,8 @@ int main() {
   TIME_GET(end);
   printf("Result SYCL: %s Time: %lf\n", getMD5DigestStr(C),
          TIME_DIFF(start, end));
+
+  free(A);
+  free(B);
+  free(C);
 }

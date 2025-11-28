@@ -34,4 +34,8 @@ int main() {
   TIME_GET(end);
   printf("Result Seq: %s Time: %lf\n", getMD5DigestStr(C),
          TIME_DIFF(start, end));
+
+  free(A);
+  free(B);
+  free(C);
 }
