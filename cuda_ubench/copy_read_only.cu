@@ -2,7 +2,9 @@
 #include <cuda_runtime.h>
 #include <unistd.h>
 
-#define MEM16K 4096 * 4
+#ifndef MEMSIZE
+#define MEMSIZE 4096 * 4
+#endif
 
 __global__ void read_only_kernel(const char *x, int size) {
   // The kernel reads from the Unified variable x ...
@@ -10,6 +12,19 @@ __global__ void read_only_kernel(const char *x, int size) {
   for (int i = 0; i < size; i++) {
     tmp = x[i];
   }
+}
+
+int write_to_file(const char *filename, const char *data, size_t size) {
+  FILE *fp = fopen(filename, "wb");
+
+  if (fp == NULL) {
+    return -1; // Error opening file
+  }
+
+  fwrite(data, sizeof(char), size, fp);
+  fclose(fp);
+
+  return 0; // Success
 }
 
 int main(void) {
@@ -24,37 +39,32 @@ int main(void) {
   cudaFree(a);
 
   // The microbenchmark allocates a Unified variable x ...
-  cudaMallocManaged(&x, MEM16K);
+  cudaMallocManaged(&x, MEMSIZE);
 
   // ... and initializes it on the CPU.
-  for (int i = 0; i < MEM16K; i++) {
+  for (int i = 0; i < MEMSIZE; i++) {
     x[i] = (char)(i & 0xFF);
   }
 
-  FILE *fp = fopen("/dev/null", "rw");
-
-  if (fp == NULL) {
-    fprintf(stderr, "Error opening /dev/null\n");
-    return 1;
-  }
-
-  // print the result to prevent compiler optimization
-  for (int i = 0; i < MEM16K; i++) {
-    fprintf(fp, "%d\n", x[i]);
+  if (write_to_file("/dev/null", x, MEMSIZE) != 0) {
+    fprintf(stderr, "Error writing to file\n");
+    cudaFree(x);
+    return -1;
   }
 
   // Then we developed a kernel which only reads the managed memory in this
   // microbenchmark.
-  read_only_kernel<<<1, 1>>>(x, MEM16K);
+  read_only_kernel<<<1, 1>>>(x, MEMSIZE);
 
   cudaDeviceSynchronize();
 
   // Next, the host reads the data again after kernel return.
-  for (int i = 0; i < MEM16K; i++) {
-    fprintf(fp, "%d\n", x[i]);
+  if (write_to_file("/dev/null", x, MEMSIZE) != 0) {
+    fprintf(stderr, "Error writing to file\n");
+    cudaFree(x);
+    return -1;
   }
 
-  fclose(fp);
   cudaFree(x);
 
   return 0;
