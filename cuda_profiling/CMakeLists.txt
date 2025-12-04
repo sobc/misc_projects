@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(cuda_ubench LANGUAGES CUDA C)
+project(cuda_profiling LANGUAGES CUDA C)
 
 find_package(OpenSSL REQUIRED)
 
