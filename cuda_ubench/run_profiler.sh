@@ -12,12 +12,22 @@
 
 module load nvhpc 
 
-for exe in ro*k; do
+for exe in read*k; do
     echo "Running benchmark for $exe"
-    nsys profile -o ${exe}.rep \
+    nsys profile -o ${exe} \
         --force-overwrite=true \
         --cuda-um-gpu-page-faults=true \
         --cuda-um-cpu-page-faults=true \
         ./$exe
-    nsys stats ${exe}.rep > ${exe}_stats.txt
+    nsys stats --force-overwrite=true ${exe}.nsys-rep > ${exe}_stats.txt
+done
+
+for exe in write*k; do
+    echo "Running benchmark for $exe"
+    nsys profile -o ${exe} \
+        --force-overwrite=true \
+        --cuda-um-gpu-page-faults=true \
+        --cuda-um-cpu-page-faults=true \
+        ./$exe
+    nsys stats --force-overwrite=true ${exe}.nsys-rep > ${exe}_stats.txt
 done

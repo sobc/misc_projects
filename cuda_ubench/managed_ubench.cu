@@ -1,3 +1,5 @@
+#include "file_writer.h"
+
 #include <cstdio>
 #include <cuda_runtime.h>
 #include <unistd.h>
@@ -6,26 +8,26 @@
 #define MEMSIZE 4096 * 4
 #endif
 
-__global__ void read_only_kernel(const char *x, int size) {
+#if defined(UBENCH_READ_ONLY)
+#define RELFILE "./read_ubench.bin"
+__global__ void read_kernel(const char *x, int size) {
   // The kernel reads from the Unified variable x ...
   volatile __shared__ char tmp;
   for (int i = 0; i < size; i++) {
     tmp = x[i];
   }
 }
-
-int write_to_file(const char *filename, const char *data, size_t size) {
-  FILE *fp = fopen(filename, "wb");
-
-  if (fp == NULL) {
-    return -1; // Error opening file
+#elif defined(UBENCH_WRITE_ONLY)
+#define RELFILE "./write_ubench.bin"
+__global__ void write_kernel(char *x, int size) {
+  // The kernel writes to the Unified variable x ...
+  for (int i = 0; i < size; i++) {
+    x[i] = (char)(i & 0xEA);
   }
-
-  fwrite(data, sizeof(char), size, fp);
-  fclose(fp);
-
-  return 0; // Success
 }
+#else
+#error "Either UBENCH_READ_ONLY or UBENCH_WRITE_ONLY must be defined"
+#endif
 
 int main(void) {
   char *x;
@@ -46,20 +48,18 @@ int main(void) {
     x[i] = (char)(i & 0xFF);
   }
 
-  if (write_to_file("/dev/null", x, MEMSIZE) != 0) {
-    fprintf(stderr, "Error writing to file\n");
-    cudaFree(x);
-    return -1;
-  }
-
+#if defined(UBENCH_READ_ONLY)
   // Then we developed a kernel which only reads the managed memory in this
   // microbenchmark.
-  read_only_kernel<<<1, 1>>>(x, MEMSIZE);
+  read_kernel<<<1, 1>>>(x, MEMSIZE);
+#elif defined(UBENCH_WRITE_ONLY)
+  write_kernel<<<1, 1>>>(x, MEMSIZE);
+#endif
 
   cudaDeviceSynchronize();
 
   // Next, the host reads the data again after kernel return.
-  if (write_to_file("/dev/null", x, MEMSIZE) != 0) {
+  if (write_to_file(RELFILE, x, MEMSIZE) != 0) {
     fprintf(stderr, "Error writing to file\n");
     cudaFree(x);
     return -1;
