@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define BLOCKX 32
+#define BLOCKY 32
+
 #define TIME_GET(timer) clock_gettime(CLOCK_MONOTONIC, &timer)
 
 #define TIME_DIFF(timer1, timer2)                                              \
@@ -69,8 +72,8 @@ double matrix_add_gpu(const Matrix A, const Matrix B, const Matrix C) {
   CUDA_ERR_CHECK(cudaMemcpy(Ad, A, size, cudaMemcpyHostToDevice));
   CUDA_ERR_CHECK(cudaMemcpy(Bd, B, size, cudaMemcpyHostToDevice));
 
-  dim3 dBlock(32, 32);
-  dim3 dGrid(NELEMENTS / 32, NELEMENTS / 32);
+  dim3 dBlock(BLOCKX, BLOCKY);
+  dim3 dGrid(NELEMENTS / BLOCKX, NELEMENTS / BLOCKY);
   matrix_add_kernel<<<dGrid, dBlock>>>(Ad, Bd, Cd);
   CUDA_ERR_CHECK(cudaGetLastError());
 
